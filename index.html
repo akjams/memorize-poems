@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + TS</title>
+  </head>
+  <body>
+    <div id="app">
+			<h1>Memorize poems</h1>
+			<h2>Usage</h2>
+			<ul>
+				<li>👉 Enter poem</li>
+				<li>🖨️ Print page</li>
+				<li>📄 Fold page, separating lines from hints</li>
+				<li>🚶 Go for walk</li>
+				<li>🪵 Sit on stump</li>
+				<li>📖 Read poem</li>
+				<li>🐦 Look at bird</li>
+				<li>🚶‍♂️ Walk more</li>
+				<li>🤔 Try to recall the poem</li>
+				<li>❌ Fail</li>
+				<li>🔍 Use the letters as hints</li>
+				<li>❌ Fail again</li>
+				<li>🔄 Flip page, see words</li>
+				<li>💡 Ah, that's what it was</li>
+				<li>☁️ Let the lines you forgot float in the air</li>
+				<li>🐦 Look at bird</li>
+				<li>🚶 Keep walking</li>
+			</ul>
+			<div>
+				<form id="poemForm">
+					<label for="poemInput">Enter your poem (use newlines):</label><br />
+					<textarea
+						id="poemInput"
+						name="poem"
+						rows="15"
+						cols="60"
+						placeholder="Type or paste your poem here..."
+						required
+					></textarea><br />
+					<button type="submit">Generate Printable Page</button>
+				</form>				
+			</div>
+		</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
