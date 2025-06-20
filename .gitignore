@@ -1,3 +1,5 @@
+# github pages uses docs/
+
 # Logs
 logs
 *.log
@@ -8,7 +10,6 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-# github pages uses dist/
 st-ssr
 *.local
 
