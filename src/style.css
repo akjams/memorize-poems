@@ -120,11 +120,23 @@ button:focus-visible {
 /* multi-line poem line spans multiple rows */
 /* each line and hint line share the same row */
 
-@media print {
+/* @media print {
   body > *:not(#printable) {
     display: none !important;
   }
   #printable {
     display: block !important;
+  }
+} */
+
+@media print {
+  body {
+    visibility: hidden;
+  }
+  #printable {
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
   }
 }
