@@ -53,7 +53,10 @@ function generatePrintable(poem: string) {
 
 			const right = document.createElement('div')
 			right.className = 'poemLine hintText'
-			right.textContent = words.map(w => w[0] ?? '').join(' ')
+			right.textContent = words.map(w => {
+				const firstLetter = w.match(/[a-zA-Z]/)?.[0]
+				return firstLetter ? firstLetter.toLowerCase() : ''
+			}).join(' ')
 
 			poemGrid.append(left, right)
 		}
