@@ -25,16 +25,18 @@ function wrapLine(line: string, maxLen = 50): string[] {
 
 function generatePrintable(poem: string) {
 	poemGrid.innerHTML = ''
-	const lines = poem.split('\n')
+	const lines = poem.split(/\r?\n/)
 
 	for (const line of lines) {
 		if (line.trim() === '') {
 			const blankLeft = document.createElement('div')
 			blankLeft.className = 'poemLine poemText'
+			blankLeft.style.minHeight = '1.4em'
 			blankLeft.innerHTML = '&nbsp;'
 
 			const blankRight = document.createElement('div')
 			blankRight.className = 'poemLine hintText'
+			blankRight.style.minHeight = '1.4em'
 			blankRight.innerHTML = '&nbsp;'
 
 			poemGrid.append(blankLeft, blankRight)
@@ -84,7 +86,7 @@ If I say so myself, HAPPY BIRTHDAY TO ME!"`
 
 poemForm.addEventListener('submit', (e: SubmitEvent) => {
 	e.preventDefault()
-	const poemText: string = poemInput.value.trim()
+	const poemText: string = poemInput.value
 	generatePrintable(poemText)
 })
 
