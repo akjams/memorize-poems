@@ -1,36 +1,63 @@
 import './style.css'
-// import typescriptLogo from './typescript.svg'
-// import viteLogo from '/vite.svg'
-// import { setupCounter } from './counter.ts'
 
 const poemInput = document.querySelector<HTMLTextAreaElement>('#poemInput')!
 const poemForm = document.querySelector<HTMLFormElement>('#poemForm')!
 const printable = document.querySelector<HTMLDivElement>('#printable')!
 const poemGrid = document.querySelector<HTMLDivElement>('#poemGrid')!
 
+function wrapLine(line: string, maxLen = 50): string[] {
+	const words = line.trim().split(/\s+/)
+	let current = ''
+	const lines: string[] = []
+
+	for (const word of words) {
+		if ((current + word).length > maxLen) {
+			lines.push(current.trim())
+			current = word + ' '
+		} else {
+			current += word + ' '
+		}
+	}
+
+	if (current.trim()) lines.push(current.trim())
+	return lines
+}
 
 function generatePrintable(poem: string) {
-  poemGrid.innerHTML = '' // clear previous
+	poemGrid.innerHTML = ''
+	const lines = poem.split('\n')
 
-  const lines = poem.split('\n')
+	for (const line of lines) {
+		if (line.trim() === '') {
+			const blankLeft = document.createElement('div')
+			blankLeft.className = 'poemLine poemText'
+			blankLeft.innerHTML = '&nbsp;'
 
-  for (const line of lines) {
-    const words = line.trim().split(/\s+/)
+			const blankRight = document.createElement('div')
+			blankRight.className = 'poemLine hintText'
+			blankRight.innerHTML = '&nbsp;'
 
-    // create left cell with full line text
-    const left = document.createElement('div')
-    left.className = 'poemLine poemText'
-    left.textContent = line
+			poemGrid.append(blankLeft, blankRight)
+			continue
+		}
 
-    // create right cell with first letters spaced
-    const right = document.createElement('div')
-    right.className = 'poemLine hintText'
-    right.textContent = words.map(w => w.toLowerCase()[0] ?? '').join(' ')
+		const wraps = wrapLine(line)
+		for (const subline of wraps) {
+			const words = subline.trim().split(/\s+/)
 
-    poemGrid.append(left, right)
-  }
+			const left = document.createElement('div')
+			left.className = 'poemLine poemText'
+			left.textContent = subline
 
-  printable.style.display = 'block'
+			const right = document.createElement('div')
+			right.className = 'poemLine hintText'
+			right.textContent = words.map(w => w[0] ?? '').join(' ')
+
+			poemGrid.append(left, right)
+		}
+	}
+
+	printable.style.display = 'block'
 }
 
 // Main
@@ -53,23 +80,17 @@ Shout loud, “I am lucky to be what I am!
 Thank goodness I’m not just a clam or a ham
 Or a dusty old jar of sour gooseberry jam!
 I am what I am! That’s a great thing to be!
-If I say so myself, HAPPY BIRTHDAY TO ME!"
-`
+If I say so myself, HAPPY BIRTHDAY TO ME!"`
 
 poemForm.addEventListener('submit', (e: SubmitEvent) => {
 	e.preventDefault()
 	const poemText: string = poemInput.value.trim()
-	// console.log('submitted poem:', poemText)
 	generatePrintable(poemText)
-
-	// TODO: generate printable poem + hint view here
-	// these are links to the same site with QUERY PARAMS of the poem
 })
 
 poemInput.addEventListener('keydown', (e: KeyboardEvent) => {
 	if (e.key === 'Enter' && e.ctrlKey) {
 		e.preventDefault()
-		poemForm.requestSubmit() // triggers form submit event
+		poemForm.requestSubmit()
 	}
 })
-
