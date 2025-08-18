@@ -115,29 +115,34 @@ function generatePrintable(poem: string, title: string = '') {
 		}
 	}
 	
-	// Calculate content height and suggest optimal scale
+	// Calculate content height and line wrapping status
 	setTimeout(() => {
 		const gridHeight = poemGrid.offsetHeight
 		const titleHeight = poemTitle.style.display !== 'none' ? poemTitle.offsetHeight : 0
 		const totalHeight = gridHeight + titleHeight
 		const pageHeight = 10 * 96 // 10 inches at 96 DPI
-		const heightInInches = (totalHeight / 96).toFixed(1)
+		
+		// Check if any lines were wrapped
+		const originalLines = poem.split(/\r?\n/).filter(line => line.trim() !== '').length
+		const displayedLines = poemGrid.querySelectorAll('.poemText').length - poem.split(/\r?\n/).filter(line => line.trim() === '').length
+		const brokenLinesCount = displayedLines - originalLines
+		const hasWrappedLines = brokenLinesCount > 0
 		
 		if (totalHeight > pageHeight) {
 			const suggestedScale = Math.floor((pageHeight / totalHeight) * scale * 100)
 			contentInfo.innerHTML = `
-				<div>Height: ${heightInInches}"</div>
 				<div style="color: #ff9999;">⚠️ Overflows page!</div>
 				<div>Try scale: ${suggestedScale}%</div>
+				<div style="color: ${hasWrappedLines ? '#ffcc66' : '#99ff99'};">
+					${hasWrappedLines ? `⚠️ ${brokenLinesCount} lines broken` : '✓ No lines broken'}
+				</div>
 			`
 		} else {
-			const remainingSpace = ((pageHeight - totalHeight) / 96).toFixed(1)
-			const maxScale = Math.floor((pageHeight / totalHeight) * scale * 100)
 			contentInfo.innerHTML = `
-				<div>Height: ${heightInInches}"</div>
-				<div style="color: #99ff99;">✓ Fits on page</div>
-				<div>Space left: ${remainingSpace}"</div>
-				<div>Max scale: ${maxScale}%</div>
+				<div style="color: #99ff99;">✓ Fits on one page</div>
+				<div style="color: ${hasWrappedLines ? '#ffcc66' : '#99ff99'};">
+					${hasWrappedLines ? `⚠️ ${brokenLinesCount} lines broken` : '✓ No lines broken'}
+				</div>
 			`
 		}
 	}, 0)
