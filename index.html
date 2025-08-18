@@ -24,7 +24,8 @@
 							required></textarea>
 					</div>
 					<div class="form-group">
-						<label for="fontScale">Font size:</label>
+						<p style="font-size: 0.85em; color: #888; margin: 0.5rem 0;">⚠️ Preview isn't perfect. Fiddle with font scale.</p>
+						<label for="fontScale">Font scale:</label>
 						<div class="scale-controls">
 							<input type="range" id="fontScale" name="fontScale" min="60" max="150" value="100" step="5" />
 							<input type="number" id="fontScaleNumber" min="60" max="150" value="100" step="5" />
@@ -35,7 +36,11 @@
 				</form>
 			</div>
 			<div class="preview-panel">
+				<div class="content-info" id="contentInfo"></div>
 				<div class="page-preview" id="printable">
+					<div class="page-break-indicator">
+						<span class="page-break-label">Page break</span>
+					</div>
 					<h2 id="poemTitle" style="display:none;"></h2>
 					<div id="poemGrid"></div>
 				</div>

@@ -103,6 +103,20 @@ button:focus-visible {
   flex: 1;
   display: flex;
   justify-content: center;
+  position: relative;
+}
+
+.content-info {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 0.75rem;
+  font-family: system-ui;
+  border-radius: 0 0 0 4px;
+  z-index: 101;
 }
 
 .page-preview {
@@ -116,6 +130,33 @@ button:focus-visible {
   overflow: visible;
   position: relative;
   font-family: serif;
+}
+
+.page-break-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10in;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    #ff0000,
+    #ff0000 5px,
+    transparent 5px,
+    transparent 10px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+.page-break-label {
+  position: absolute;
+  right: -3rem;
+  top: -0.5rem;
+  font-size: 0.75rem;
+  color: #ff0000;
+  font-family: system-ui;
+  white-space: nowrap;
 }
 
 #poemTitle {
@@ -243,61 +284,69 @@ button:focus-visible {
     margin: 0.5in;
   }
   
-  * {
-    visibility: hidden;
-  }
-  
   body {
-    margin: 0;
-    padding: 0;
-    background: white;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
   }
   
-  .page-preview,
-  .page-preview * {
-    visibility: visible;
+  #app > *:not(.layout-container) {
+    display: none !important;
+  }
+  
+  .layout-container {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .form-panel {
+    display: none !important;
+  }
+  
+  .preview-panel {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .page-break-indicator,
+  .page-break-label,
+  .content-info {
+    display: none !important;
   }
   
   .page-preview {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 7.5in;
-    height: auto;
-    padding: 0;
-    margin: 0;
     box-shadow: none !important;
-    border: none !important;
-    background: white !important;
     transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+    background: white !important;
+    color: black !important;
   }
   
   #poemTitle {
-    font-size: 1.5em;
-    text-align: center;
-    margin: 0 0 1rem 0;
+    display: block !important;
+    color: black !important;
   }
   
   #poemGrid {
-    font-size: 1rem;
-    line-height: 1.4;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    column-gap: 0.5rem;
-    row-gap: 0.25rem;
-  }
-  
-  .poemLine {
-    break-inside: avoid;
+    display: grid !important;
+    page-break-inside: avoid;
+    color: black !important;
   }
   
   .poemText {
-    grid-column: 1;
+    color: black !important;
   }
   
   .hintText {
-    grid-column: 2;
-    text-align: right;
-    white-space: nowrap;
+    color: #666 !important;
+  }
+  
+  .poemLine {
+    page-break-inside: avoid;
   }
 }

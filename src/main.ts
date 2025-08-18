@@ -9,17 +9,23 @@ const poemForm = document.querySelector<HTMLFormElement>('#poemForm')!
 const printable = document.querySelector<HTMLDivElement>('#printable')!
 const poemGrid = document.querySelector<HTMLDivElement>('#poemGrid')!
 const poemTitle = document.querySelector<HTMLHeadingElement>('#poemTitle')!
+const contentInfo = document.querySelector<HTMLDivElement>('#contentInfo')!
 
 function wrapLine(line: string, fontSize: number): string[] {
-	const charWidth = fontSize * 0.6
-	const pageWidth = 7.5 * 96 // 7.5 inches in pixels at 96 DPI
-	const hintWidth = line.trim().split(/\s+/).length * fontSize * 1.2 // rough estimate for hint letters
-	const gapWidth = fontSize * 2 // 2 letter widths gap
+	// More accurate calculation based on actual available space
+	const charWidth = fontSize * 0.55 // Slightly tighter estimate for serif font
+	const pageWidth = 7.5 * 96 // 7.5 inches at 96 DPI
+	const wordsCount = line.trim().split(/\s+/).length
+	const hintWidth = wordsCount * fontSize * 0.8 // Hint letters take less space
+	const gapWidth = fontSize * 1.5 // Minimum gap between columns
 	const availableWidth = pageWidth - hintWidth - gapWidth
 	const maxLen = Math.floor(availableWidth / charWidth)
 	
 	const words = line.trim().split(/\s+/)
 	if (words.length === 0) return []
+	
+	// Don't wrap unless absolutely necessary
+	if (line.length <= maxLen) return [line.trim()]
 	
 	const lines: string[] = []
 	let current = words[0]
@@ -90,7 +96,33 @@ function generatePrintable(poem: string, title: string = '') {
 			poemGrid.append(left, right)
 		}
 	}
-
+	
+	// Calculate content height and suggest optimal scale
+	setTimeout(() => {
+		const gridHeight = poemGrid.offsetHeight
+		const titleHeight = poemTitle.style.display !== 'none' ? poemTitle.offsetHeight : 0
+		const totalHeight = gridHeight + titleHeight
+		const pageHeight = 10 * 96 // 10 inches at 96 DPI
+		const heightInInches = (totalHeight / 96).toFixed(1)
+		
+		if (totalHeight > pageHeight) {
+			const suggestedScale = Math.floor((pageHeight / totalHeight) * scale * 100)
+			contentInfo.innerHTML = `
+				<div>Height: ${heightInInches}"</div>
+				<div style="color: #ff9999;">⚠️ Overflows page!</div>
+				<div>Try scale: ${suggestedScale}%</div>
+			`
+		} else {
+			const remainingSpace = ((pageHeight - totalHeight) / 96).toFixed(1)
+			const maxScale = Math.floor((pageHeight / totalHeight) * scale * 100)
+			contentInfo.innerHTML = `
+				<div>Height: ${heightInInches}"</div>
+				<div style="color: #99ff99;">✓ Fits on page</div>
+				<div>Space left: ${remainingSpace}"</div>
+				<div>Max scale: ${maxScale}%</div>
+			`
+		}
+	}, 0)
 }
 
 // Main
