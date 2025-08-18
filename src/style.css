@@ -334,7 +334,6 @@ button:focus-visible {
   
   #poemGrid {
     display: grid !important;
-    page-break-inside: avoid;
     color: black !important;
   }
   
