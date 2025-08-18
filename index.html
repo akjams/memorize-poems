@@ -11,16 +11,35 @@
 <body>
 	<div id="app">
 		<h1>Memorize poems</h1>
-		<div>
-			<form id="poemForm">
-				<label for="poemInput">Enter your poem (use newlines):</label><br />
-				<textarea id="poemInput" name="poem" rows="15" cols="60" placeholder="Type or paste your poem here..."
-					required></textarea><br />
-				<button type="submit">Generate Printable Page</button>
-			</form>
-		</div>
-		<div id="printable" aria-live="polite" style="display:none;">
-			<div id="poemGrid"></div>
+		<div class="layout-container">
+			<div class="form-panel">
+				<form id="poemForm">
+					<div class="form-group">
+						<label for="titleInput">Title (optional):</label>
+						<input type="text" id="titleInput" name="title" placeholder="Enter poem title..." />
+					</div>
+					<div class="form-group">
+						<label for="poemInput">Enter your poem:</label>
+						<textarea id="poemInput" name="poem" rows="15" placeholder="Type or paste your poem here..."
+							required></textarea>
+					</div>
+					<div class="form-group">
+						<label for="fontScale">Font size:</label>
+						<div class="scale-controls">
+							<input type="range" id="fontScale" name="fontScale" min="60" max="150" value="100" step="5" />
+							<input type="number" id="fontScaleNumber" min="60" max="150" value="100" step="5" />
+							<span>%</span>
+						</div>
+					</div>
+					<button type="button" id="printButton">Print</button>
+				</form>
+			</div>
+			<div class="preview-panel">
+				<div class="page-preview" id="printable">
+					<h2 id="poemTitle" style="display:none;"></h2>
+					<div id="poemGrid"></div>
+				</div>
+			</div>
 		</div>		
 		<div>
 			<h2>Usage</h2>

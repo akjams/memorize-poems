@@ -1,5 +1,7 @@
 # github pages uses docs/
 
+assets/
+
 # Logs
 logs
 *.log

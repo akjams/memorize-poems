@@ -1,30 +1,59 @@
 import './style.css'
 
 const poemInput = document.querySelector<HTMLTextAreaElement>('#poemInput')!
+const titleInput = document.querySelector<HTMLInputElement>('#titleInput')!
+const fontScale = document.querySelector<HTMLInputElement>('#fontScale')!
+const fontScaleNumber = document.querySelector<HTMLInputElement>('#fontScaleNumber')!
+const printButton = document.querySelector<HTMLButtonElement>('#printButton')!
 const poemForm = document.querySelector<HTMLFormElement>('#poemForm')!
 const printable = document.querySelector<HTMLDivElement>('#printable')!
 const poemGrid = document.querySelector<HTMLDivElement>('#poemGrid')!
+const poemTitle = document.querySelector<HTMLHeadingElement>('#poemTitle')!
 
-function wrapLine(line: string, maxLen = 50): string[] {
+function wrapLine(line: string, fontSize: number): string[] {
+	const charWidth = fontSize * 0.6
+	const pageWidth = 7.5 * 96 // 7.5 inches in pixels at 96 DPI
+	const hintWidth = line.trim().split(/\s+/).length * fontSize * 1.2 // rough estimate for hint letters
+	const gapWidth = fontSize * 2 // 2 letter widths gap
+	const availableWidth = pageWidth - hintWidth - gapWidth
+	const maxLen = Math.floor(availableWidth / charWidth)
+	
 	const words = line.trim().split(/\s+/)
-	let current = ''
+	if (words.length === 0) return []
+	
 	const lines: string[] = []
-
-	for (const word of words) {
-		if ((current + word).length > maxLen) {
-			lines.push(current.trim())
-			current = word + ' '
+	let current = words[0]
+	
+	for (let i = 1; i < words.length; i++) {
+		const word = words[i]
+		const testLine = current + ' ' + word
+		
+		if (testLine.length > maxLen && current.length > 0) {
+			lines.push(current)
+			current = word
 		} else {
-			current += word + ' '
+			current = testLine
 		}
 	}
-
-	if (current.trim()) lines.push(current.trim())
+	
+	if (current) lines.push(current)
 	return lines
 }
 
-function generatePrintable(poem: string) {
+function generatePrintable(poem: string, title: string = '') {
 	poemGrid.innerHTML = ''
+	
+	if (title.trim()) {
+		poemTitle.textContent = title
+		poemTitle.style.display = 'block'
+	} else {
+		poemTitle.style.display = 'none'
+	}
+	
+	const scale = parseInt(fontScale.value) / 100
+	const fontSize = 16 * scale
+	poemGrid.style.fontSize = `${fontSize}px`
+	
 	const lines = poem.split(/\r?\n/)
 
 	for (const line of lines) {
@@ -43,7 +72,7 @@ function generatePrintable(poem: string) {
 			continue
 		}
 
-		const wraps = wrapLine(line)
+		const wraps = wrapLine(line, fontSize)
 		for (const subline of wraps) {
 			const words = subline.trim().split(/\s+/)
 
@@ -62,7 +91,6 @@ function generatePrintable(poem: string) {
 		}
 	}
 
-	printable.style.display = 'block'
 }
 
 // Main
@@ -87,10 +115,37 @@ Or a dusty old jar of sour gooseberry jam!
 I am what I am! That’s a great thing to be!
 If I say so myself, HAPPY BIRTHDAY TO ME!"`
 
-poemForm.addEventListener('submit', (e: SubmitEvent) => {
-	e.preventDefault()
-	const poemText: string = poemInput.value
-	generatePrintable(poemText)
+
+fontScale.addEventListener('input', () => {
+	fontScaleNumber.value = fontScale.value
+	if (poemInput.value) {
+		generatePrintable(poemInput.value, titleInput.value)
+	}
+})
+
+fontScaleNumber.addEventListener('input', () => {
+	const value = Math.min(150, Math.max(60, parseInt(fontScaleNumber.value) || 100))
+	fontScaleNumber.value = value.toString()
+	fontScale.value = value.toString()
+	if (poemInput.value) {
+		generatePrintable(poemInput.value, titleInput.value)
+	}
+})
+
+printButton.addEventListener('click', () => {
+	window.print()
+})
+
+poemInput.addEventListener('input', () => {
+	if (poemInput.value) {
+		generatePrintable(poemInput.value, titleInput.value)
+	}
+})
+
+titleInput.addEventListener('input', () => {
+	if (poemInput.value) {
+		generatePrintable(poemInput.value, titleInput.value)
+	}
 })
 
 poemInput.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -99,3 +154,5 @@ poemInput.addEventListener('keydown', (e: KeyboardEvent) => {
 		poemForm.requestSubmit()
 	}
 })
+
+generatePrintable(poemInput.value)
