@@ -10,6 +10,42 @@
 
 <body>
 	<div id="app">
+		<div class="top-icons">
+			<button id="menuButton" class="icon-button" title="Saved poems">☰</button>
+			<button id="helpButton" class="icon-button" title="Help">?</button>
+		</div>
+		<div id="savedPoemsMenu" class="side-menu">
+			<div class="menu-header">
+				<h3>Saved Poems</h3>
+				<button id="closeMenuButton" class="close-button">×</button>
+			</div>
+			<div id="savedPoemsList" class="saved-poems-list"></div>
+		</div>
+		<div id="helpPopup" class="popup-overlay">
+			<div class="popup-content">
+				<button id="closeHelpButton" class="close-button">×</button>
+				<h2>Usage</h2>
+				<ul>
+					<li>👉 Enter poem</li>
+					<li>🖨️ Print page</li>
+					<li>📄 Fold page, separating lines from hints</li>
+					<li>🚶 Go for walk</li>
+					<li>🪵 Sit on stump</li>
+					<li>📖 Read poem</li>
+					<li>🐦 Look at bird</li>
+					<li>🚶‍♂️ Walk more</li>
+					<li>🤔 Try to recall the poem</li>
+					<li>❌ Fail</li>
+					<li>🔍 Use the letters as hints</li>
+					<li>❌ Fail</li>
+					<li>🔄 Flip page, see words</li>
+					<li>💡 Ah, that's what it was</li>
+					<li>☁️ Let the line float in the air</li>
+					<li>🐦 Look at bird</li>
+					<li>🚶 Keep walking</li>
+				</ul>
+			</div>
+		</div>
 		<h1>Memorize poems</h1>
 		<div class="layout-container">
 			<div class="form-panel">
@@ -32,7 +68,10 @@
 							<span>%</span>
 						</div>
 					</div>
-					<button type="button" id="printButton">Print</button>
+					<div class="button-group">
+						<button type="button" id="saveButton">Save poem</button>
+						<button type="button" id="printButton">Print</button>
+					</div>
 				</form>
 			</div>
 			<div class="preview-panel">
@@ -45,28 +84,6 @@
 					<div id="poemGrid"></div>
 				</div>
 			</div>
-		</div>		
-		<div>
-			<h2>Usage</h2>
-			<ul>
-				<li>👉 Enter poem</li>
-				<li>🖨️ Print page</li>
-				<li>📄 Fold page, separating lines from hints</li>
-				<li>🚶 Go for walk</li>
-				<li>🪵 Sit on stump</li>
-				<li>📖 Read poem</li>
-				<li>🐦 Look at bird</li>
-				<li>🚶‍♂️ Walk more</li>
-				<li>🤔 Try to recall the poem</li>
-				<li>❌ Fail</li>
-				<li>🔍 Use the letters as hints</li>
-				<li>❌ Fail</li>
-				<li>🔄 Flip page, see words</li>
-				<li>💡 Ah, that's what it was</li>
-				<li>☁️ Let the line float in the air</li>
-				<li>🐦 Look at bird</li>
-				<li>🚶 Keep walking</li>
-			</ul>
 		</div>
 	</div>
 	<script type="module" src="/src/main.ts"></script>
