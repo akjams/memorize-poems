@@ -1,6 +1,6 @@
 # github pages uses docs/
 
-assets/
+localAssets/
 
 # Logs
 logs
