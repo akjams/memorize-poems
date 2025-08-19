@@ -16,7 +16,6 @@ const fontScaleNumber = document.querySelector<HTMLInputElement>('#fontScaleNumb
 const printButton = document.querySelector<HTMLButtonElement>('#printButton')!
 const saveButton = document.querySelector<HTMLButtonElement>('#saveButton')!
 const poemForm = document.querySelector<HTMLFormElement>('#poemForm')!
-const printable = document.querySelector<HTMLDivElement>('#printable')!
 const poemGrid = document.querySelector<HTMLDivElement>('#poemGrid')!
 const poemTitle = document.querySelector<HTMLHeadingElement>('#poemTitle')!
 const contentInfo = document.querySelector<HTMLDivElement>('#contentInfo')!
