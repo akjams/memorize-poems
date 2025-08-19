@@ -31,6 +31,7 @@ h1 {
   font-size: 3.2em;
   line-height: 1.1;
   margin-bottom: 0.5em;
+  text-align: center;
 }
 
 h2 {
@@ -81,6 +82,10 @@ button:focus-visible {
   button:hover {
     border-color: #747bff;
   }
+  .form-panel {
+    border-color: #ccc;
+    background: rgba(249, 249, 249, 0.5);
+  }
   .form-group input[type="text"],
   .form-group textarea,
   .scale-controls input[type="number"] {
@@ -98,6 +103,10 @@ button:focus-visible {
 .form-panel {
   flex: 0 0 auto;
   min-width: 300px;
+  padding: 1.5rem;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: rgba(26, 26, 26, 0.5);
 }
 
 .preview-panel {

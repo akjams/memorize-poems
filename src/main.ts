@@ -129,9 +129,10 @@ function generatePrintable(poem: string, title: string = '') {
 		const hasWrappedLines = brokenLinesCount > 0
 		
 		if (totalHeight > pageHeight) {
+			const pagesNeeded = Math.ceil(totalHeight / pageHeight)
 			const suggestedScale = Math.floor((pageHeight / totalHeight) * scale * 100)
 			contentInfo.innerHTML = `
-				<div style="color: #ff9999;">⚠️ Overflows page!</div>
+				<div style="color: #ffcc66;">⚠️ Fits on ${pagesNeeded} pages</div>
 				<div>Try scale: ${suggestedScale}%</div>
 				<div style="color: ${hasWrappedLines ? '#ffcc66' : '#99ff99'};">
 					${hasWrappedLines ? `⚠️ ${brokenLinesCount} lines broken` : '✓ No lines broken'}
