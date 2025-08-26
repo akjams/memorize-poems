@@ -271,9 +271,10 @@ button:focus-visible {
   grid-column: 2;
   text-align: right;
   font-variant: small-caps;
-  user-select: none;
+  user-select: text;
   color: #666;
   white-space: nowrap;
+  cursor: text;
 }
 
 /* multi-line poem line spans multiple rows */

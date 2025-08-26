@@ -15,6 +15,7 @@ const fontScale = document.querySelector<HTMLInputElement>('#fontScale')!
 const fontScaleNumber = document.querySelector<HTMLInputElement>('#fontScaleNumber')!
 const printButton = document.querySelector<HTMLButtonElement>('#printButton')!
 const saveButton = document.querySelector<HTMLButtonElement>('#saveButton')!
+const ankiClozeButton = document.querySelector<HTMLButtonElement>('#ankiClozeButton')!
 const poemForm = document.querySelector<HTMLFormElement>('#poemForm')!
 const poemGrid = document.querySelector<HTMLDivElement>('#poemGrid')!
 const poemTitle = document.querySelector<HTMLHeadingElement>('#poemTitle')!
@@ -61,6 +62,36 @@ function wrapLine(line: string, fontSize: number): string[] {
 	
 	if (current) lines.push(current)
 	return lines
+}
+
+function generateAnkiCloze(poem: string): string {
+	// Split poem into stanzas (separated by double newlines)
+	const stanzas = poem.split(/\n\s*\n/)
+	
+	const clozeCards: string[] = []
+	
+	stanzas.forEach((stanza, index) => {
+		if (stanza.trim() === '') return
+		
+		const lines = stanza.split(/\n/).filter(line => line.trim() !== '')
+		const fullText = lines.join('\n')
+		
+		// Generate hint text (first letters)
+		const hintText = lines.map(line => {
+			const words = line.trim().split(/\s+/)
+			return words.map(word => {
+				const firstLetter = word.match(/[a-zA-Z]/)?.[0]
+				return firstLetter ? firstLetter.toLowerCase() : ''
+			}).join('')
+		}).join('\n')
+		
+		// Create cloze with c1, c2, c3, etc. for each stanza
+		const clozeNumber = index + 1
+		const clozeCard = `{{c${clozeNumber}::${fullText}\n::\n${hintText}\n}}`
+		clozeCards.push(clozeCard)
+	})
+	
+	return clozeCards.join('\n\n')
 }
 
 function generatePrintable(poem: string, title: string = '') {
@@ -362,5 +393,59 @@ helpPopup.addEventListener('click', (e) => {
 })
 
 saveButton.addEventListener('click', savePoem)
+
+ankiClozeButton.addEventListener('click', async () => {
+	const poemText = poemInput.value.trim()
+	if (!poemText) return
+	
+	const ankiCloze = generateAnkiCloze(poemText)
+	
+	try {
+		await navigator.clipboard.writeText(ankiCloze)
+		// Visual feedback
+		const originalText = ankiClozeButton.textContent
+		ankiClozeButton.textContent = 'Copied!'
+		ankiClozeButton.style.backgroundColor = '#4CAF50'
+		setTimeout(() => {
+			ankiClozeButton.textContent = originalText
+			ankiClozeButton.style.backgroundColor = ''
+		}, 2000)
+	} catch (err) {
+		console.error('Failed to copy text: ', err)
+		alert('Failed to copy to clipboard')
+	}
+})
+
+// Add double-click to select all poem or hint text
+poemGrid.addEventListener('dblclick', (e) => {
+	const target = e.target as HTMLElement
+	if (!target.classList.contains('poemText') && !target.classList.contains('hintText')) return
+	
+	e.preventDefault()
+	const isPoem = target.classList.contains('poemText')
+	const textElements = isPoem 
+		? Array.from(poemGrid.querySelectorAll('.poemText'))
+		: Array.from(poemGrid.querySelectorAll('.hintText'))
+	
+	const text = textElements.map(el => el.textContent || '').join('\n')
+	
+	// Select all text elements visually
+	const selection = window.getSelection()
+	if (selection) {
+		selection.removeAllRanges()
+		const range = document.createRange()
+		
+		if (textElements.length > 0) {
+			range.setStartBefore(textElements[0])
+			range.setEndAfter(textElements[textElements.length - 1])
+			selection.addRange(range)
+		}
+	}
+	
+	// Copy to clipboard
+	navigator.clipboard.writeText(text).catch(err => {
+		console.error('Failed to copy text: ', err)
+	})
+})
 
 generatePrintable(poemInput.value)
