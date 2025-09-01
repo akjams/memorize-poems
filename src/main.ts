@@ -6,6 +6,89 @@ interface SavedPoem {
 	fontScale: number
 }
 
+class PoemTextFormatter {
+	private poem: string
+
+	constructor(poem: string) {
+		this.poem = poem
+	}
+
+	getHintLetters(): string {
+		return this.poem.split(/\r?\n/).map(line => {
+			if (line.trim() === '') return ''
+			const words = line.trim().split(/\s+/)
+			return words.map(word => {
+				const firstLetter = word.match(/[a-zA-Z]/)?.[0]
+				return firstLetter ? firstLetter.toLowerCase() : ''
+			}).join(' ')
+		}).join('\n')
+	}
+
+	getLyrics(): string {
+		return this.poem
+	}
+
+	getLineByLine(): string {
+		return this.poem.split(/\r?\n/).map(line => {
+			if (line.trim() === '') return ''
+			const words = line.trim().split(/\s+/)
+			const hints = words.map(word => {
+				const firstLetter = word.match(/[a-zA-Z]/)?.[0]
+				return firstLetter ? firstLetter.toLowerCase() : ''
+			}).join(' ')
+			return `${line} | ${hints}`
+		}).join('\n')
+	}
+
+	getOneAfterOther(): string {
+		const lines = this.poem.split(/\r?\n/)
+		const hintLines: string[] = []
+		
+		// Generate hint lines for each line of the poem
+		lines.forEach(line => {
+			if (line.trim() !== '') {
+				const words = line.trim().split(/\s+/)
+				const hints = words.map(word => {
+					const firstLetter = word.match(/[a-zA-Z]/)?.[0]
+					return firstLetter ? firstLetter.toLowerCase() : ''
+				}).join(' ')
+				hintLines.push(hints)
+			} else {
+				hintLines.push('')
+			}
+		})
+		
+		// Return all lyrics, then 2 newlines, then all hints
+		return this.poem + '\n\n' + hintLines.join('\n')
+	}
+
+	getAnkiCloze(): string {
+		const stanzas = this.poem.split(/\n\s*\n/)
+		const clozeCards: string[] = []
+		
+		stanzas.forEach((stanza, index) => {
+			if (stanza.trim() === '') return
+			
+			const lines = stanza.split(/\n/).filter(line => line.trim() !== '')
+			const fullText = lines.join('\n')
+			
+			const hintText = lines.map(line => {
+				const words = line.trim().split(/\s+/)
+				return words.map(word => {
+					const firstLetter = word.match(/[a-zA-Z]/)?.[0]
+					return firstLetter ? firstLetter.toLowerCase() : ''
+				}).join('')
+			}).join('\n')
+			
+			const clozeNumber = index + 1
+			const clozeCard = `{{c${clozeNumber}::${fullText}\n::\n${hintText}\n}}`
+			clozeCards.push(clozeCard)
+		})
+		
+		return clozeCards.join('\n\n')
+	}
+}
+
 const MAX_TITLE_LENGTH = 20
 const STORAGE_KEY = 'memorize-poems-saved'
 
@@ -16,6 +99,10 @@ const fontScaleNumber = document.querySelector<HTMLInputElement>('#fontScaleNumb
 const printButton = document.querySelector<HTMLButtonElement>('#printButton')!
 const saveButton = document.querySelector<HTMLButtonElement>('#saveButton')!
 const ankiClozeButton = document.querySelector<HTMLButtonElement>('#ankiClozeButton')!
+const copyHintButton = document.querySelector<HTMLButtonElement>('#copyHintButton')!
+const copyLyricsButton = document.querySelector<HTMLButtonElement>('#copyLyricsButton')!
+const copyLineByLineButton = document.querySelector<HTMLButtonElement>('#copyLineByLineButton')!
+const copyOneAfterOtherButton = document.querySelector<HTMLButtonElement>('#copyOneAfterOtherButton')!
 const poemForm = document.querySelector<HTMLFormElement>('#poemForm')!
 const poemGrid = document.querySelector<HTMLDivElement>('#poemGrid')!
 const poemTitle = document.querySelector<HTMLHeadingElement>('#poemTitle')!
@@ -64,34 +151,21 @@ function wrapLine(line: string, fontSize: number): string[] {
 	return lines
 }
 
-function generateAnkiCloze(poem: string): string {
-	// Split poem into stanzas (separated by double newlines)
-	const stanzas = poem.split(/\n\s*\n/)
-	
-	const clozeCards: string[] = []
-	
-	stanzas.forEach((stanza, index) => {
-		if (stanza.trim() === '') return
-		
-		const lines = stanza.split(/\n/).filter(line => line.trim() !== '')
-		const fullText = lines.join('\n')
-		
-		// Generate hint text (first letters)
-		const hintText = lines.map(line => {
-			const words = line.trim().split(/\s+/)
-			return words.map(word => {
-				const firstLetter = word.match(/[a-zA-Z]/)?.[0]
-				return firstLetter ? firstLetter.toLowerCase() : ''
-			}).join('')
-		}).join('\n')
-		
-		// Create cloze with c1, c2, c3, etc. for each stanza
-		const clozeNumber = index + 1
-		const clozeCard = `{{c${clozeNumber}::${fullText}\n::\n${hintText}\n}}`
-		clozeCards.push(clozeCard)
-	})
-	
-	return clozeCards.join('\n\n')
+async function copyWithFeedback(button: HTMLButtonElement, text: string): Promise<void> {
+	try {
+		await navigator.clipboard.writeText(text)
+		const originalText = button.textContent
+		const originalBg = button.style.backgroundColor
+		button.textContent = 'Copied!'
+		button.style.backgroundColor = '#4CAF50'
+		setTimeout(() => {
+			button.textContent = originalText
+			button.style.backgroundColor = originalBg
+		}, 2000)
+	} catch (err) {
+		console.error('Failed to copy text: ', err)
+		alert('Failed to copy to clipboard')
+	}
 }
 
 function generatePrintable(poem: string, title: string = '') {
@@ -398,22 +472,40 @@ ankiClozeButton.addEventListener('click', async () => {
 	const poemText = poemInput.value.trim()
 	if (!poemText) return
 	
-	const ankiCloze = generateAnkiCloze(poemText)
+	const formatter = new PoemTextFormatter(poemText)
+	await copyWithFeedback(ankiClozeButton, formatter.getAnkiCloze())
+})
+
+copyHintButton.addEventListener('click', async () => {
+	const poemText = poemInput.value.trim()
+	if (!poemText) return
 	
-	try {
-		await navigator.clipboard.writeText(ankiCloze)
-		// Visual feedback
-		const originalText = ankiClozeButton.textContent
-		ankiClozeButton.textContent = 'Copied!'
-		ankiClozeButton.style.backgroundColor = '#4CAF50'
-		setTimeout(() => {
-			ankiClozeButton.textContent = originalText
-			ankiClozeButton.style.backgroundColor = ''
-		}, 2000)
-	} catch (err) {
-		console.error('Failed to copy text: ', err)
-		alert('Failed to copy to clipboard')
-	}
+	const formatter = new PoemTextFormatter(poemText)
+	await copyWithFeedback(copyHintButton, formatter.getHintLetters())
+})
+
+copyLyricsButton.addEventListener('click', async () => {
+	const poemText = poemInput.value.trim()
+	if (!poemText) return
+	
+	const formatter = new PoemTextFormatter(poemText)
+	await copyWithFeedback(copyLyricsButton, formatter.getLyrics())
+})
+
+copyLineByLineButton.addEventListener('click', async () => {
+	const poemText = poemInput.value.trim()
+	if (!poemText) return
+	
+	const formatter = new PoemTextFormatter(poemText)
+	await copyWithFeedback(copyLineByLineButton, formatter.getLineByLine())
+})
+
+copyOneAfterOtherButton.addEventListener('click', async () => {
+	const poemText = poemInput.value.trim()
+	if (!poemText) return
+	
+	const formatter = new PoemTextFormatter(poemText)
+	await copyWithFeedback(copyOneAfterOtherButton, formatter.getOneAfterOther())
 })
 
 // Add double-click to select all poem or hint text

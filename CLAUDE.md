@@ -19,3 +19,4 @@ Web app for memorizing poems by generating printable pages with full text and hi
 npm run dev    # Start dev server
 npm run build  # Build for production
 ```
+- assume that npm run dev is already running, or the user will run when needed. do not run yourself

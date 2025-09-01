@@ -543,16 +543,58 @@ button:focus-visible {
   padding-left: 1.5rem;
 }
 
-.button-group {
+.action-buttons-row {
   display: flex;
   gap: 0.5rem;
+  margin: 1rem 0;
 }
 
-.button-group button {
+.action-buttons-row button {
   flex: 1;
 }
 
+.copy-buttons-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.copy-button {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  text-align: left;
+  background: rgba(66, 184, 221, 0.1);
+  border: 1px solid rgba(66, 184, 221, 0.3);
+  color: #42b8dd;
+  transition: all 0.2s;
+}
+
+.copy-button:hover {
+  background: rgba(66, 184, 221, 0.2);
+  border-color: rgba(66, 184, 221, 0.5);
+  transform: translateX(4px);
+}
+
 @media (prefers-color-scheme: light) {
+  .copy-buttons-section {
+    border-top-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .copy-button {
+    background: rgba(66, 184, 221, 0.05);
+    border-color: rgba(66, 184, 221, 0.3);
+    color: #2a8ba8;
+  }
+  
+  .copy-button:hover {
+    background: rgba(66, 184, 221, 0.15);
+    border-color: rgba(66, 184, 221, 0.5);
+  }
+  
   .icon-button {
     background: #f9f9f9;
     color: #213547;
