@@ -24,6 +24,17 @@ class PoemTextFormatter {
 		}).join('\n')
 	}
 
+	getHintLettersWithoutSpaces(): string {
+		return this.poem.split(/\r?\n/).map(line => {
+			if (line.trim() === '') return ''
+			const words = line.trim().split(/\s+/)
+			return words.map(word => {
+				const firstLetter = word.match(/[a-zA-Z]/)?.[0]
+				return firstLetter ? firstLetter.toLowerCase() : ''
+			}).join('')
+		}).join('\n')
+	}
+
 	getLyrics(): string {
 		return this.poem
 	}
@@ -100,6 +111,7 @@ const printButton = document.querySelector<HTMLButtonElement>('#printButton')!
 const saveButton = document.querySelector<HTMLButtonElement>('#saveButton')!
 const ankiClozeButton = document.querySelector<HTMLButtonElement>('#ankiClozeButton')!
 const copyHintButton = document.querySelector<HTMLButtonElement>('#copyHintButton')!
+const copyHintNoSpacesButton = document.querySelector<HTMLButtonElement>('#copyHintNoSpacesButton')!
 const copyLyricsButton = document.querySelector<HTMLButtonElement>('#copyLyricsButton')!
 const copyLineByLineButton = document.querySelector<HTMLButtonElement>('#copyLineByLineButton')!
 const copyOneAfterOtherButton = document.querySelector<HTMLButtonElement>('#copyOneAfterOtherButton')!
@@ -115,6 +127,7 @@ const helpPopup = document.querySelector<HTMLDivElement>('#helpPopup')!
 const closeMenuButton = document.querySelector<HTMLButtonElement>('#closeMenuButton')!
 const closeHelpButton = document.querySelector<HTMLButtonElement>('#closeHelpButton')!
 const savedPoemsList = document.querySelector<HTMLDivElement>('#savedPoemsList')!
+const cutNewlinesButton = document.querySelector<HTMLButtonElement>('#cutNewlinesButton')!
 
 function wrapLine(line: string, fontSize: number): string[] {
 	// More accurate calculation based on actual available space
@@ -253,9 +266,17 @@ function generatePrintable(poem: string, title: string = '') {
 	}, 0)
 }
 
+function cutNonstanzaNewlines(text: string): string {
+	// Replace double newlines with single newlines
+	let result = text.replace(/\n\n/g, '\n')
+	// Replace any remaining sequences of 2+ newlines with double newlines (for stanza breaks)
+	result = result.replace(/\n{2,}/g, '\n\n')
+	return result
+}
+
 // Main
 
-poemInput.value = `If we didn’t have birthdays, you wouldn’t be you.
+poemInput.value = `If we didn't have birthdays, you wouldn't be you.
 If you’d never been born, well then what would you do?
 If you’d never been born, well then what would you be?
 You might be a fish! Or a toad in a tree!
@@ -479,9 +500,17 @@ ankiClozeButton.addEventListener('click', async () => {
 copyHintButton.addEventListener('click', async () => {
 	const poemText = poemInput.value.trim()
 	if (!poemText) return
-	
+
 	const formatter = new PoemTextFormatter(poemText)
 	await copyWithFeedback(copyHintButton, formatter.getHintLetters())
+})
+
+copyHintNoSpacesButton.addEventListener('click', async () => {
+	const poemText = poemInput.value.trim()
+	if (!poemText) return
+
+	const formatter = new PoemTextFormatter(poemText)
+	await copyWithFeedback(copyHintNoSpacesButton, formatter.getHintLettersWithoutSpaces())
 })
 
 copyLyricsButton.addEventListener('click', async () => {
@@ -503,9 +532,19 @@ copyLineByLineButton.addEventListener('click', async () => {
 copyOneAfterOtherButton.addEventListener('click', async () => {
 	const poemText = poemInput.value.trim()
 	if (!poemText) return
-	
+
 	const formatter = new PoemTextFormatter(poemText)
 	await copyWithFeedback(copyOneAfterOtherButton, formatter.getOneAfterOther())
+})
+
+cutNewlinesButton.addEventListener('click', () => {
+	const currentText = poemInput.value
+	const editedText = cutNonstanzaNewlines(currentText)
+	poemInput.value = editedText
+
+	if (editedText) {
+		generatePrintable(editedText, titleInput.value)
+	}
 })
 
 // Add double-click to select all poem or hint text
