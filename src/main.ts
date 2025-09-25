@@ -39,16 +39,44 @@ class PoemTextFormatter {
 		return this.poem
 	}
 
-	getLineByLine(): string {
-		return this.poem.split(/\r?\n/).map(line => {
-			if (line.trim() === '') return ''
+	getMarkup(): string {
+		const lines = this.poem.split(/\r?\n/)
+		const buffer: string[] = []
+		const data: Array<{hints: string, lyric: string}> = []
+
+		// First pass: collect all hint/lyric pairs and find max hint width
+		let maxHintWidth = 0
+		for (const line of lines) {
+			if (line.trim() === '') {
+				data.push({hints: '', lyric: ''})
+				continue
+			}
+
 			const words = line.trim().split(/\s+/)
 			const hints = words.map(word => {
 				const firstLetter = word.match(/[a-zA-Z]/)?.[0]
 				return firstLetter ? firstLetter.toLowerCase() : ''
-			}).join(' ')
-			return `${line} | ${hints}`
-		}).join('\n')
+			}).join('')
+
+			data.push({hints, lyric: line.trim()})
+			if (hints.length > maxHintWidth) {
+				maxHintWidth = hints.length
+			}
+		}
+
+		// Second pass: format with proper padding
+		for (const {hints, lyric} of data) {
+			if (lyric === '') {
+				buffer.push('')
+				continue
+			}
+
+			const paddingNeeded = maxHintWidth - hints.length + 2
+			const padding = ' '.repeat(paddingNeeded)
+			buffer.push(hints + padding + lyric)
+		}
+
+		return buffer.join('\n')
 	}
 
 	getOneAfterOther(): string {
@@ -164,9 +192,19 @@ function wrapLine(line: string, fontSize: number): string[] {
 	return lines
 }
 
-async function copyWithFeedback(button: HTMLButtonElement, text: string): Promise<void> {
+async function copyWithFeedback(button: HTMLButtonElement, text: string, isMonospaced: boolean = false): Promise<void> {
 	try {
-		await navigator.clipboard.writeText(text)
+		if (isMonospaced && navigator.clipboard.write) {
+			// Try to copy with monospaced formatting
+			const htmlContent = `<pre style="font-family: 'Courier New', Consolas, monospace;">${text.replace(/\n/g, '<br>')}</pre>`
+			const clipboardItem = new ClipboardItem({
+				'text/html': new Blob([htmlContent], { type: 'text/html' }),
+				'text/plain': new Blob([text], { type: 'text/plain' })
+			})
+			await navigator.clipboard.write([clipboardItem])
+		} else {
+			await navigator.clipboard.writeText(text)
+		}
 		const originalText = button.textContent
 		const originalBg = button.style.backgroundColor
 		button.textContent = 'Copied!'
@@ -524,9 +562,9 @@ copyLyricsButton.addEventListener('click', async () => {
 copyLineByLineButton.addEventListener('click', async () => {
 	const poemText = poemInput.value.trim()
 	if (!poemText) return
-	
+
 	const formatter = new PoemTextFormatter(poemText)
-	await copyWithFeedback(copyLineByLineButton, formatter.getLineByLine())
+	await copyWithFeedback(copyLineByLineButton, formatter.getMarkup(), true)
 })
 
 copyOneAfterOtherButton.addEventListener('click', async () => {
