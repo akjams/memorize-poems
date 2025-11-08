@@ -4,6 +4,8 @@ interface SavedPoem {
 	title: string
 	poemText: string
 	fontScale: number
+	lineHeight: number
+	configureableBreakAreas: number[]
 }
 
 class PoemTextFormatter {
@@ -135,6 +137,8 @@ const poemInput = document.querySelector<HTMLTextAreaElement>('#poemInput')!
 const titleInput = document.querySelector<HTMLInputElement>('#titleInput')!
 const fontScale = document.querySelector<HTMLInputElement>('#fontScale')!
 const fontScaleNumber = document.querySelector<HTMLInputElement>('#fontScaleNumber')!
+const lineHeight = document.querySelector<HTMLInputElement>('#lineHeight')!
+const lineHeightNumber = document.querySelector<HTMLInputElement>('#lineHeightNumber')!
 const printButton = document.querySelector<HTMLButtonElement>('#printButton')!
 const saveButton = document.querySelector<HTMLButtonElement>('#saveButton')!
 const ankiClozeButton = document.querySelector<HTMLButtonElement>('#ankiClozeButton')!
@@ -156,6 +160,9 @@ const closeMenuButton = document.querySelector<HTMLButtonElement>('#closeMenuBut
 const closeHelpButton = document.querySelector<HTMLButtonElement>('#closeHelpButton')!
 const savedPoemsList = document.querySelector<HTMLDivElement>('#savedPoemsList')!
 const cutNewlinesButton = document.querySelector<HTMLButtonElement>('#cutNewlinesButton')!
+
+// Global state for configurable break areas
+let configureableBreakAreas: number[] = []
 
 function wrapLine(line: string, fontSize: number): string[] {
 	// More accurate calculation based on actual available space
@@ -219,38 +226,142 @@ async function copyWithFeedback(button: HTMLButtonElement, text: string, isMonos
 	}
 }
 
+function identifyBreakAreas(poem: string, title: string): { areas: number[], spacing: number[] } {
+	const areas: number[] = []
+	const spacing: number[] = []
+	let areaIndex = 0
+
+	// Break area 0: between title and first stanza (if title exists)
+	if (title.trim()) {
+		areas.push(areaIndex++)
+		spacing.push(1) // Always 1 spacer between title and content
+	}
+
+	// Find stanza breaks by splitting on double newlines
+	const stanzaSections = poem.split(/\n\s*\n/)
+
+	// Create break areas between stanzas
+	for (let i = 0; i < stanzaSections.length - 1; i++) {
+		areas.push(areaIndex++)
+		// Count how many blank lines were between these stanzas in the original
+		// For now, assume 1 blank line = 1 spacer (user can adjust)
+		spacing.push(1) // Start with 1 spacer, user can add/remove
+	}
+
+	console.log('Detected break areas:', areas, 'with spacing:', spacing)
+	console.log('Stanza sections:', stanzaSections.length)
+	return { areas, spacing }
+}
+
+function createBreakAreaUI(areaId: number, spacerCount: number): void {
+	// Always create the control buttons container, even for 0 spacers
+	const container = document.createElement('div')
+	container.className = 'configurable-break-area'
+	container.dataset.areaId = areaId.toString()
+
+	const controls = document.createElement('div')
+	controls.className = 'break-controls'
+
+	const addBtn = document.createElement('button')
+	addBtn.className = 'break-control-btn'
+	addBtn.textContent = '+'
+	addBtn.onclick = () => adjustBreakArea(areaId, 1)
+
+	const removeBtn = document.createElement('button')
+	removeBtn.className = 'break-control-btn'
+	removeBtn.textContent = '−'
+	removeBtn.onclick = () => adjustBreakArea(areaId, -1)
+
+	controls.appendChild(addBtn)
+	controls.appendChild(removeBtn)
+	container.appendChild(controls)
+
+	// Add the controls container to the grid
+	poemGrid.appendChild(container)
+
+	// Add the actual spacer lines (only if spacerCount > 0)
+	for (let i = 0; i < spacerCount; i++) {
+		const spacer = document.createElement('div')
+		spacer.className = 'break-area-spacer'
+		spacer.innerHTML = '&nbsp;'
+		poemGrid.appendChild(spacer)
+	}
+}
+
+function adjustBreakArea(areaId: number, delta: number) {
+	console.log(`Adjusting break area ${areaId} by ${delta}`)
+	const currentCount = configureableBreakAreas[areaId] ?? 1 // Use ?? to distinguish 0 from undefined
+	const newCount = Math.max(0, Math.min(8, currentCount + delta)) // 0-8 range (0 = no spacing, stanzas touch)
+	console.log(`Break area ${areaId}: ${currentCount} -> ${newCount}`)
+	configureableBreakAreas[areaId] = newCount
+
+	// Regenerate the preview
+	if (poemInput.value) {
+		generatePrintable(poemInput.value, titleInput.value)
+	}
+}
+
 function generatePrintable(poem: string, title: string = '') {
 	poemGrid.innerHTML = ''
-	
+
 	if (title.trim()) {
 		poemTitle.textContent = title
 		poemTitle.style.display = 'block'
 	} else {
 		poemTitle.style.display = 'none'
 	}
-	
+
 	const scale = parseInt(fontScale.value) / 100
 	const fontSize = 16 * scale
+	const lineHeightValue = parseFloat(lineHeight.value)
 	poemGrid.style.fontSize = `${fontSize}px`
+	poemGrid.style.lineHeight = lineHeightValue.toString()
+
+	// Initialize break areas if empty
+	const breakInfo = identifyBreakAreas(poem, title)
+	if (configureableBreakAreas.length === 0) {
+		configureableBreakAreas = [...breakInfo.spacing]
+		console.log('Initialized break areas:', configureableBreakAreas)
+	}
 	
 	const lines = poem.split(/\r?\n/)
+	let currentBreakArea = 0
+	let inStanza = false
+	let stanzaCount = 0
 
-	for (const line of lines) {
-		if (line.trim() === '') {
-			const blankLeft = document.createElement('div')
-			blankLeft.className = 'poemLine poemText'
-			blankLeft.style.minHeight = '1.4em'
-			blankLeft.innerHTML = '&nbsp;'
+	// Add break area after title if title exists
+	if (title.trim() && currentBreakArea < breakInfo.areas.length) {
+		const breakCount = configureableBreakAreas[currentBreakArea] ?? 1
+		createBreakAreaUI(currentBreakArea, breakCount)
+		currentBreakArea++
+	}
 
-			const blankRight = document.createElement('div')
-			blankRight.className = 'poemLine hintText'
-			blankRight.style.minHeight = '1.4em'
-			blankRight.innerHTML = '&nbsp;'
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i]
+		const isEmpty = line.trim() === ''
 
-			poemGrid.append(blankLeft, blankRight)
+		if (!isEmpty && !inStanza) {
+			// Starting a new stanza
+			inStanza = true
+			stanzaCount++
+		} else if (isEmpty && inStanza) {
+			// End of stanza, add break area if there's more content
+			inStanza = false
+			const hasMoreContent = lines.slice(i + 1).some(l => l.trim() !== '')
+			if (hasMoreContent && currentBreakArea < breakInfo.areas.length) {
+				const breakCount = configureableBreakAreas[currentBreakArea] ?? 1
+				createBreakAreaUI(currentBreakArea, breakCount)
+				currentBreakArea++
+			}
 			continue
 		}
 
+		if (isEmpty) {
+			// Skip empty lines that aren't stanza breaks
+			continue
+		}
+
+		// Process non-empty lines
 		const wraps = wrapLine(line, fontSize)
 		for (const subline of wraps) {
 			const words = subline.trim().split(/\s+/)
@@ -342,6 +453,25 @@ fontScale.addEventListener('input', () => {
 	}
 })
 
+lineHeight.addEventListener('input', () => {
+	lineHeightNumber.value = lineHeight.value
+	if (poemInput.value) {
+		generatePrintable(poemInput.value, titleInput.value)
+	}
+})
+
+lineHeightNumber.addEventListener('input', () => {
+	const value = Math.max(1.0, parseFloat(lineHeightNumber.value) || 1.4)
+	lineHeightNumber.value = value.toString()
+	// Only sync slider if value is within slider range
+	if (value <= 8.0) {
+		lineHeight.value = value.toString()
+	}
+	if (poemInput.value) {
+		generatePrintable(poemInput.value, titleInput.value)
+	}
+})
+
 fontScaleNumber.addEventListener('input', () => {
 	const value = Math.min(150, Math.max(60, parseInt(fontScaleNumber.value) || 100))
 	fontScaleNumber.value = value.toString()
@@ -356,6 +486,8 @@ printButton.addEventListener('click', () => {
 })
 
 poemInput.addEventListener('input', () => {
+	// Reset break areas when poem changes
+	configureableBreakAreas = []
 	if (poemInput.value) {
 		generatePrintable(poemInput.value, titleInput.value)
 	}
@@ -413,6 +545,15 @@ function getSavedPoems(): SavedPoem[] {
 				console.warn('Invalid poem properties:', poem)
 				return false
 			}
+			// Handle legacy poems without lineHeight
+			if (poem.lineHeight === undefined) {
+				poem.lineHeight = 1.4
+			}
+			// Handle legacy poems without configureableBreakAreas
+			if (!poem.configureableBreakAreas) {
+				const breakInfo = identifyBreakAreas(poem.poemText, poem.title)
+				poem.configureableBreakAreas = [...breakInfo.spacing]
+			}
 			return true
 		})
 	} catch (e) {
@@ -427,9 +568,16 @@ function savePoem() {
 	
 	const title = titleInput.value.trim() || generateTitleFromPoem(poemText)
 	const scale = parseInt(fontScale.value)
-	
+	const lineHeightValue = parseFloat(lineHeight.value)
+
 	const savedPoems = getSavedPoems()
-	const newPoem: SavedPoem = { title, poemText, fontScale: scale }
+	const newPoem: SavedPoem = {
+		title,
+		poemText,
+		fontScale: scale,
+		lineHeight: lineHeightValue,
+		configureableBreakAreas: [...configureableBreakAreas]
+	}
 	
 	// Check if poem with same title exists
 	const existingIndex = savedPoems.findIndex(p => p.title === title)
@@ -448,6 +596,18 @@ function loadPoem(poem: SavedPoem) {
 	poemInput.value = poem.poemText
 	fontScale.value = poem.fontScale.toString()
 	fontScaleNumber.value = poem.fontScale.toString()
+	lineHeight.value = (poem.lineHeight || 1.4).toString()
+	lineHeightNumber.value = (poem.lineHeight || 1.4).toString()
+
+	// Load break areas or initialize defaults
+	if (poem.configureableBreakAreas) {
+		configureableBreakAreas = [...poem.configureableBreakAreas]
+	} else {
+		// Initialize for legacy poems using actual spacing
+		const breakInfo = identifyBreakAreas(poem.poemText, poem.title)
+		configureableBreakAreas = [...breakInfo.spacing]
+	}
+
 	generatePrintable(poem.poemText, poem.title)
 	savedPoemsMenu.classList.remove('open')
 }
